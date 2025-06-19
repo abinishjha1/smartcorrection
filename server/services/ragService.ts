@@ -5,7 +5,7 @@ import type { RAGResponse, VectorChunk } from '@shared/schema';
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || "placeholder_key",
 });
 
 export class RAGService {
@@ -112,6 +112,13 @@ export class RAGService {
         sources: [],
         reasoning: "No relevant chunks found with sufficient similarity to the query."
       };
+    }
+
+    // Check if we have a valid API key before making OpenAI calls
+    const apiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+    if (!apiKey || apiKey === "placeholder_key") {
+      console.log('No valid OpenAI API key found, using content analysis fallback');
+      return this.generateContentAnalysisResponse(query, allRelevantChunks);
     }
 
     // Prepare context for the LLM
